@@ -1,0 +1,8 @@
+{
+  "id": "oneworldproxy",
+  "name": "OneWorldProxy",
+  "version": "0.1-SNAPSHOT",
+  "authors": ["Medved"],
+  "description": "Medved powered",
+  "main": "org.punkcraft.oneworldp.OneWorldProxy"
+}
