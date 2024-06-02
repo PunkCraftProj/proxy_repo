@@ -23,7 +23,6 @@ public class OneWorldProxy {
         this.logger = logger;
 
         // Register commands
-        server.getEventManager().register(this, this);
         server.getCommandManager().register("server", new MyCommand(this));
     }
 
