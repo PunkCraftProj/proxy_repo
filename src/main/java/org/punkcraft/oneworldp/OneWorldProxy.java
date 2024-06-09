@@ -12,8 +12,11 @@ import com.velocitypowered.api.proxy.ServerConnection;
 import com.google.inject.Inject;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
+import net.kyori.adventure.text.Component;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Plugin(id = "oneworldproxy", name = "OneWorldProxy", version = "0.1-SNAPSHOT", dependencies = {})
@@ -26,7 +29,6 @@ public class OneWorldProxy {
     public OneWorldProxy(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.server = server;
         this.logger = logger;
-
         server.getCommandManager().register("server", new MyCommand(this));
     }
 
@@ -51,14 +53,58 @@ public class OneWorldProxy {
         }
         ServerConnection backend = (ServerConnection) event.getSource();
 
-        // Ensure the identifier is what you expect before trying to handle the data
         if (!event.getIdentifier().equals(IDENTIFIER)) {
             return;
         }
         ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
         // Process the received packet data
-        String message = in.readUTF(); // Example of reading a UTF string from the packet
-        logger.info("Received message from backend: " + message);
-        // Add more handling of the data as needed
+        String message = in.readUTF();
+        String[] parts = message.split(" ");
+        String player_name = parts[0];
+        String server_to = parts[1];
+
+        Optional<Player> playerOptional = server.getPlayer(player_name);
+        if (!playerOptional.isPresent()) {
+            return;
+        }
+
+        Player player = playerOptional.get();
+        String uuid = player.getUniqueId().toString();
+
+
+        Optional<RegisteredServer> hubServerOptional = getServer().getServer("hub");
+        Optional<RegisteredServer> targetServerOptional = getServer().getServer(server_to);
+
+        if (hubServerOptional.isPresent() && targetServerOptional.isPresent()) {
+            RegisteredServer hubServer = hubServerOptional.get();
+            RegisteredServer targetServer = targetServerOptional.get();
+
+            if (isCurrentServer(player, hubServer)) {
+                connectToServer(player, targetServer);
+            } else {
+                player.createConnectionRequest(hubServer).connect().thenAccept(result -> {
+
+                    if (result.isSuccessful()) {
+                        connectToServer(player, targetServer);
+                    } else {
+                        player.sendMessage(Component.text("Не удалось подключиться к hub"));
+                    }
+                });
+            }
+        }
+    }
+
+    private boolean isCurrentServer(Player player, RegisteredServer server) {
+        return player.getCurrentServer().map(current -> current.getServerInfo().equals(server.getServerInfo())).orElse(false);
+    }
+
+    private void connectToServer(Player player, RegisteredServer server) {
+        player.createConnectionRequest(server).connect().thenAccept(result -> {
+            if (result.isSuccessful()) {
+                player.sendMessage(Component.text("Успешный вход на " + server.getServerInfo().getName()));
+            } else {
+                player.sendMessage(Component.text("Не удалось подключиться к " + server.getServerInfo().getName()));
+            }
+        });
     }
 }
