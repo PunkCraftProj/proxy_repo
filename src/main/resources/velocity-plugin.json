@@ -1,6 +1,6 @@
 {
-  "id": "oneworldproxy",
-  "name": "OneWorldProxy",
+  "id": "pkapi",
+  "name": "PKAPI",
   "version": "0.1-SNAPSHOT",
   "authors": ["Medved"],
   "description": "Medved powered",
