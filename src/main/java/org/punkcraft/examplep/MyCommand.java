@@ -1,5 +1,5 @@
 
-package org.punkcraft.oneworldp;
+package org.punkcraft.examplep;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -19,9 +19,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class MyCommand implements SimpleCommand {
-    private final OneWorldProxy plugin;
+    private final example plugin;
 
-    public MyCommand(OneWorldProxy plugin) {
+    public MyCommand(example plugin) {
         this.plugin = plugin;
     }
 
